@@ -43,9 +43,10 @@
   }
   canvas {
     display: block;
-    background: linear-gradient(180deg, #1a1742 0%, #2d1b58 50%, #3d2270 100%);
+    background:
+      linear-gradient(180deg, #6dd5ed 0%, #8fdcf0 35%, #b8e6f5 70%, #d6f0ad 92%, #9ed666 100%);
     border-radius: 14px;
-    box-shadow: inset 0 0 50px rgba(0,0,0,0.55);
+    box-shadow: inset 0 0 60px rgba(0, 80, 120, 0.25);
     touch-action: none;
     max-width: 100%;
     height: auto;
@@ -221,8 +222,8 @@
   const TOP_OFFSET = 30;
   const DANGER_Y   = H - 110;
   const SHOOTER_Y  = H - 50;
-  const COLORS    = ['#ff5e5e', '#ffd93d', '#6bcb77', '#4d96ff', '#c780fa', '#ff9472'];
-  const HILITES   = ['#ffb3b3', '#ffe87d', '#a3e0a8', '#a3c7ff', '#dfb3ff', '#ffc3a3'];
+  const COLORS    = ['#ff3b30', '#ff9500', '#ffd60a', '#34c759', '#0a84ff', '#bf5af2'];
+  const bubbleCache = {};
 
   // ---------- State ----------
   let grid, projectile, nextColor, particles, popups, fallingBubbles;
@@ -234,28 +235,56 @@
 
   // ---------- Audio (small synth) ----------
   let audioCtx = null;
-  function audio() {
-    if (!soundOn) return null;
-    if (!audioCtx) {
-      try { audioCtx = new (window.AudioContext || window.webkitAudioContext)(); }
-      catch (e) { return null; }
-    }
+  let audioUnlocked = false;
+
+  function initAudio() {
+    if (audioCtx) return audioCtx;
+    try {
+      const AC = window.AudioContext || window.webkitAudioContext;
+      if (!AC) return null;
+      audioCtx = new AC();
+    } catch (e) { return null; }
     return audioCtx;
   }
-  function beep(freq, dur, type, vol) {
-    const ac = audio(); if (!ac) return;
-    const o = ac.createOscillator(); const g = ac.createGain();
-    o.type = type || 'sine'; o.frequency.value = freq;
-    g.gain.value = vol || 0.08;
-    o.connect(g); g.connect(ac.destination);
-    o.start();
-    g.gain.exponentialRampToValueAtTime(0.0001, ac.currentTime + (dur || 0.15));
-    o.stop(ac.currentTime + (dur || 0.15));
+
+  // Browsers (especially mobile Safari) require a user gesture before any
+  // audio can play. We attach this to the first click/touch so the very first
+  // shot makes a sound.
+  function unlockAudio() {
+    const ac = initAudio();
+    if (!ac) return;
+    if (ac.state === 'suspended') ac.resume().catch(() => {});
+    if (!audioUnlocked) {
+      // play an inaudible blip to fully wake the context on iOS
+      try {
+        const o = ac.createOscillator(); const g = ac.createGain();
+        g.gain.value = 0.0001;
+        o.connect(g); g.connect(ac.destination);
+        o.start(); o.stop(ac.currentTime + 0.02);
+      } catch (e) { /* ignore */ }
+      audioUnlocked = true;
+    }
   }
-  function popSound() { beep(560 + Math.random() * 200, 0.12, 'triangle', 0.07); }
+
+  function beep(freq, dur, type, vol) {
+    if (!soundOn) return;
+    const ac = initAudio(); if (!ac) return;
+    if (ac.state === 'suspended') ac.resume().catch(() => {});
+    try {
+      const o = ac.createOscillator(); const g = ac.createGain();
+      o.type = type || 'sine'; o.frequency.value = freq;
+      const v = vol || 0.08;
+      g.gain.setValueAtTime(v, ac.currentTime);
+      o.connect(g); g.connect(ac.destination);
+      o.start();
+      g.gain.exponentialRampToValueAtTime(0.0001, ac.currentTime + (dur || 0.15));
+      o.stop(ac.currentTime + (dur || 0.15));
+    } catch (e) { /* ignore */ }
+  }
+  function popSound()   { beep(560 + Math.random() * 200, 0.12, 'triangle', 0.07); }
   function shootSound() { beep(220, 0.08, 'square', 0.05); }
   function comboSound() { beep(880, 0.18, 'sine', 0.1); setTimeout(() => beep(1100, 0.18, 'sine', 0.1), 80); }
-  function dropSound() { beep(140, 0.25, 'sawtooth', 0.06); }
+  function dropSound()  { beep(140, 0.25, 'sawtooth', 0.06); }
 
   // ---------- Hex grid utilities ----------
   function maxCols(row) { return (row % 2 === 0) ? COLS_EVEN : COLS_ODD; }
@@ -284,6 +313,29 @@
   function makeBubble(row, col, color) {
     const p = gridToPixel(row, col);
     return { row, col, color, x: p.x, y: p.y, alive: true, falling: false, vy: 0, scale: 1 };
+  }
+
+  // Spatial lookup: only test grid cells near the given pixel — ~9 cells max
+  // instead of iterating the entire grid every frame.
+  function nearbyHit(px, py) {
+    const approxRow = Math.floor((py - TOP_OFFSET - RADIUS) / ROW_H + 0.5);
+    const lim = (RADIUS * 2 - 2);
+    const lim2 = lim * lim;
+    for (let dr = -1; dr <= 1; dr++) {
+      const r = approxRow + dr;
+      if (r < 0 || r >= grid.length) continue;
+      const offset = (r % 2 === 1) ? RADIUS : 0;
+      const approxCol = Math.floor((px - RADIUS - offset) / (RADIUS * 2) + 0.5);
+      for (let dc = -1; dc <= 1; dc++) {
+        const c = approxCol + dc;
+        if (c < 0 || c >= maxCols(r)) continue;
+        const b = grid[r][c];
+        if (!b || !b.alive || b.falling) continue;
+        const ex = px - b.x, ey = py - b.y;
+        if (ex * ex + ey * ey < lim2) return b;
+      }
+    }
+    return null;
   }
 
   // ---------- Level setup ----------
@@ -359,17 +411,8 @@
       snapToGrid(); return;
     }
 
-    // Bubble collision
-    for (let r = 0; r < grid.length; r++) {
-      for (let c = 0; c < grid[r].length; c++) {
-        const b = grid[r][c];
-        if (!b || !b.alive || b.falling) continue;
-        const dx = projectile.x - b.x, dy = projectile.y - b.y;
-        const d2 = dx * dx + dy * dy;
-        const lim = (RADIUS * 2 - 2);
-        if (d2 < lim * lim) { snapToGrid(); return; }
-      }
-    }
+    // Bubble collision (spatial — only nearby cells)
+    if (nearbyHit(projectile.x, projectile.y)) { snapToGrid(); return; }
 
     if (projectile.y > H + RADIUS) { spawnProjectile(); combo = 0; }
   }
@@ -640,35 +683,95 @@
     return '#' + ((r << 16) | (g << 8) | b).toString(16).padStart(6, '0');
   }
 
+  // Pre-render each color bubble to an offscreen canvas. Drawing every frame
+  // with createRadialGradient is very expensive — caching the sprite once
+  // and using drawImage per bubble is dramatically faster.
+  function buildBubbleSprite(color) {
+    const dpr = Math.min(2, window.devicePixelRatio || 1);
+    const pad = 6;                       // room for outer glow + soft shadow
+    const r   = RADIUS;
+    const size = (r + pad) * 2;
+    const off = document.createElement('canvas');
+    off.width  = size * dpr;
+    off.height = size * dpr;
+    const c = off.getContext('2d');
+    c.scale(dpr, dpr);
+    const cx = size / 2, cy = size / 2;
+
+    // 1) Soft outer glow (very subtle)
+    const glow = c.createRadialGradient(cx, cy, r * 0.92, cx, cy, r + pad);
+    glow.addColorStop(0, shade(color, 30) + 'aa');
+    glow.addColorStop(1, color + '00');
+    c.fillStyle = glow;
+    c.beginPath(); c.arc(cx, cy, r + pad - 1, 0, Math.PI * 2); c.fill();
+
+    // 2) Main sphere body — radial gradient offset to upper-left for 3D feel
+    const body = c.createRadialGradient(
+      cx - r * 0.45, cy - r * 0.5, r * 0.05,
+      cx + r * 0.15, cy + r * 0.2,  r * 1.05
+    );
+    body.addColorStop(0.00, shade(color, 90));
+    body.addColorStop(0.18, shade(color, 45));
+    body.addColorStop(0.55, color);
+    body.addColorStop(0.88, shade(color, -25));
+    body.addColorStop(1.00, shade(color, -55));
+    c.fillStyle = body;
+    c.beginPath(); c.arc(cx, cy, r, 0, Math.PI * 2); c.fill();
+
+    // 3) Dark inner rim for depth
+    const rim = c.createRadialGradient(cx, cy, r * 0.82, cx, cy, r);
+    rim.addColorStop(0, 'rgba(0,0,0,0)');
+    rim.addColorStop(1, 'rgba(0,0,0,0.22)');
+    c.fillStyle = rim;
+    c.beginPath(); c.arc(cx, cy, r, 0, Math.PI * 2); c.fill();
+
+    // 4) Big glossy highlight (upper-left)
+    c.save();
+    c.translate(cx - r * 0.32, cy - r * 0.4);
+    c.rotate(-Math.PI / 4);
+    const hl = c.createRadialGradient(0, 0, 0, 0, 0, r * 0.5);
+    hl.addColorStop(0, 'rgba(255,255,255,0.95)');
+    hl.addColorStop(0.5, 'rgba(255,255,255,0.5)');
+    hl.addColorStop(1, 'rgba(255,255,255,0)');
+    c.fillStyle = hl;
+    c.beginPath(); c.ellipse(0, 0, r * 0.5, r * 0.32, 0, 0, Math.PI * 2); c.fill();
+    c.restore();
+
+    // 5) Tiny crisp specular dot
+    c.fillStyle = 'rgba(255,255,255,1)';
+    c.beginPath();
+    c.arc(cx - r * 0.42, cy - r * 0.46, r * 0.09, 0, Math.PI * 2);
+    c.fill();
+
+    // 6) Soft bottom reflection (light bouncing back)
+    const bot = c.createRadialGradient(cx + r * 0.05, cy + r * 0.55, 0,
+                                       cx + r * 0.05, cy + r * 0.55, r * 0.55);
+    bot.addColorStop(0, 'rgba(255,255,255,0.35)');
+    bot.addColorStop(1, 'rgba(255,255,255,0)');
+    c.fillStyle = bot;
+    c.beginPath(); c.ellipse(cx + r * 0.05, cy + r * 0.55, r * 0.45, r * 0.16, 0, 0, Math.PI * 2); c.fill();
+
+    return { canvas: off, drawSize: size };
+  }
+
+  function getBubbleSprite(color) {
+    if (!bubbleCache[color]) bubbleCache[color] = buildBubbleSprite(color);
+    return bubbleCache[color];
+  }
+
   function drawBubble(x, y, color, scale, alpha) {
     scale = scale == null ? 1 : scale;
     alpha = alpha == null ? 1 : alpha;
-    const r = RADIUS * scale;
-    ctx.save();
-    ctx.globalAlpha = alpha;
-    // body gradient
-    const idx = COLORS.indexOf(color);
-    const hl = idx >= 0 ? HILITES[idx] : '#ffffff';
-    const grd = ctx.createRadialGradient(x - r * 0.35, y - r * 0.4, r * 0.1, x, y, r);
-    grd.addColorStop(0, hl);
-    grd.addColorStop(0.45, color);
-    grd.addColorStop(1, shade(color, -50));
-    ctx.fillStyle = grd;
-    ctx.beginPath();
-    ctx.arc(x, y, r, 0, Math.PI * 2);
-    ctx.fill();
-    // glossy highlight
-    ctx.fillStyle = 'rgba(255,255,255,0.55)';
-    ctx.beginPath();
-    ctx.ellipse(x - r * 0.35, y - r * 0.4, r * 0.32, r * 0.22, -Math.PI / 4, 0, Math.PI * 2);
-    ctx.fill();
-    // soft border
-    ctx.strokeStyle = 'rgba(0,0,0,0.18)';
-    ctx.lineWidth = 1.2;
-    ctx.beginPath();
-    ctx.arc(x, y, r, 0, Math.PI * 2);
-    ctx.stroke();
-    ctx.restore();
+    const sprite = getBubbleSprite(color);
+    const s = sprite.drawSize * scale;
+    if (alpha < 1) {
+      ctx.save();
+      ctx.globalAlpha = alpha;
+      ctx.drawImage(sprite.canvas, x - s / 2, y - s / 2, s, s);
+      ctx.restore();
+    } else {
+      ctx.drawImage(sprite.canvas, x - s / 2, y - s / 2, s, s);
+    }
   }
 
   function drawGrid() {
@@ -685,7 +788,7 @@
   function drawDangerLine() {
     ctx.save();
     ctx.setLineDash([8, 8]);
-    ctx.strokeStyle = 'rgba(255, 80, 80, 0.4)';
+    ctx.strokeStyle = 'rgba(220, 30, 30, 0.55)';
     ctx.lineWidth = 2;
     ctx.beginPath();
     ctx.moveTo(0, DANGER_Y);
@@ -695,28 +798,32 @@
   }
 
   function drawShooter() {
-    // base
+    // base glow
     ctx.save();
-    const baseGrad = ctx.createRadialGradient(shooter.x, shooter.y + 10, 5, shooter.x, shooter.y + 10, 50);
-    baseGrad.addColorStop(0, 'rgba(196, 77, 255, 0.4)');
-    baseGrad.addColorStop(1, 'rgba(196, 77, 255, 0)');
+    const baseGrad = ctx.createRadialGradient(shooter.x, shooter.y + 10, 5, shooter.x, shooter.y + 10, 55);
+    baseGrad.addColorStop(0, 'rgba(255, 255, 255, 0.55)');
+    baseGrad.addColorStop(1, 'rgba(255, 255, 255, 0)');
     ctx.fillStyle = baseGrad;
     ctx.beginPath();
-    ctx.arc(shooter.x, shooter.y + 10, 50, 0, Math.PI * 2);
+    ctx.arc(shooter.x, shooter.y + 10, 55, 0, Math.PI * 2);
     ctx.fill();
     // cannon
     ctx.translate(shooter.x, shooter.y);
     ctx.rotate(shooter.angle + Math.PI / 2);
-    ctx.fillStyle = '#3a3270';
-    ctx.strokeStyle = '#7a6fd1';
-    ctx.lineWidth = 2;
+    const cgrd = ctx.createLinearGradient(-7, -34, 7, -4);
+    cgrd.addColorStop(0, '#5a4a7a');
+    cgrd.addColorStop(0.5, '#8a7ab8');
+    cgrd.addColorStop(1, '#3a2f55');
+    ctx.fillStyle = cgrd;
+    ctx.strokeStyle = '#2a1f45';
+    ctx.lineWidth = 1.5;
     ctx.beginPath();
     ctx.roundRect ? ctx.roundRect(-7, -34, 14, 30, 4) : ctx.rect(-7, -34, 14, 30);
     ctx.fill(); ctx.stroke();
     ctx.restore();
     // shooter ring
     ctx.save();
-    ctx.strokeStyle = 'rgba(255,255,255,0.25)';
+    ctx.strokeStyle = 'rgba(255,255,255,0.7)';
     ctx.lineWidth = 2;
     ctx.beginPath();
     ctx.arc(shooter.x, shooter.y, 26, 0, Math.PI * 2);
@@ -729,7 +836,7 @@
     // next bubble preview
     drawBubble(shooter.x - 60, shooter.y + 8, nextColor, 0.6, 0.85);
     ctx.save();
-    ctx.fillStyle = 'rgba(255,255,255,0.5)';
+    ctx.fillStyle = 'rgba(40, 30, 70, 0.7)';
     ctx.font = 'bold 9px sans-serif';
     ctx.textAlign = 'center';
     ctx.fillText('NEXT', shooter.x - 60, shooter.y + 32);
@@ -747,37 +854,28 @@
     if (a > maxA) a = maxA; if (a < minA) a = minA;
     let x = shooter.x, y = shooter.y;
     let dx = Math.cos(a), dy = Math.sin(a);
-    const step = 5;
+    const step = 12;                           // bigger step = fewer iterations
     ctx.save();
     ctx.setLineDash([5, 9]);
     ctx.lineWidth = 2;
-    ctx.strokeStyle = 'rgba(255,255,255,0.45)';
+    ctx.strokeStyle = 'rgba(255,255,255,0.55)';
     ctx.beginPath();
     ctx.moveTo(x, y);
     let endX = x, endY = y;
-    for (let i = 0; i < 220; i++) {
+    for (let i = 0; i < 90; i++) {
       x += dx * step; y += dy * step;
       if (x < RADIUS) { x = RADIUS; dx = -dx; }
       if (x > W - RADIUS) { x = W - RADIUS; dx = -dx; }
       if (y < RADIUS + TOP_OFFSET) { endX = x; endY = y; break; }
-      let collided = false;
-      for (let r = 0; r < grid.length && !collided; r++) {
-        for (let c = 0; c < grid[r].length; c++) {
-          const b = grid[r][c];
-          if (!b || !b.alive || b.falling) continue;
-          const ex = x - b.x, ey = y - b.y;
-          if (ex * ex + ey * ey < (RADIUS * 2 - 2) * (RADIUS * 2 - 2)) { collided = true; break; }
-        }
-      }
       ctx.lineTo(x, y);
       endX = x; endY = y;
-      if (collided) break;
+      if (nearbyHit(x, y)) break;             // spatial check, very fast
     }
     ctx.stroke();
     ctx.restore();
     // Target marker
     ctx.save();
-    ctx.strokeStyle = 'rgba(255,255,255,0.55)';
+    ctx.strokeStyle = 'rgba(255,255,255,0.7)';
     ctx.lineWidth = 1.8;
     ctx.beginPath();
     ctx.arc(endX, endY, RADIUS - 2, 0, Math.PI * 2);
@@ -789,7 +887,7 @@
     const total = shotsToAdvance, used = total - shotsLeft;
     const x = 14, y = SHOOTER_Y - 40, w = 100, h = 6;
     ctx.save();
-    ctx.fillStyle = 'rgba(255,255,255,0.1)';
+    ctx.fillStyle = 'rgba(0, 20, 40, 0.18)';
     ctx.fillRect(x, y, w, h);
     const ratio = used / total;
     const barGrad = ctx.createLinearGradient(x, y, x + w, y);
@@ -797,7 +895,7 @@
     barGrad.addColorStop(1, '#ff6b9d');
     ctx.fillStyle = barGrad;
     ctx.fillRect(x, y, w * ratio, h);
-    ctx.fillStyle = 'rgba(255,255,255,0.6)';
+    ctx.fillStyle = 'rgba(20, 30, 60, 0.8)';
     ctx.font = 'bold 9px sans-serif';
     ctx.fillText('NEW ROW IN ' + shotsLeft, x, y - 4);
     ctx.restore();
@@ -875,8 +973,9 @@
   }
 
   canvas.addEventListener('mousemove', (e) => pointerAim(e.clientX, e.clientY));
-  canvas.addEventListener('mousedown', (e) => { pointerAim(e.clientX, e.clientY); shoot(); });
+  canvas.addEventListener('mousedown', (e) => { unlockAudio(); pointerAim(e.clientX, e.clientY); shoot(); });
   canvas.addEventListener('touchstart', (e) => {
+    unlockAudio();
     if (e.touches[0]) pointerAim(e.touches[0].clientX, e.touches[0].clientY);
   }, { passive: true });
   canvas.addEventListener('touchmove', (e) => {
@@ -884,6 +983,9 @@
     if (e.touches[0]) pointerAim(e.touches[0].clientX, e.touches[0].clientY);
   }, { passive: false });
   canvas.addEventListener('touchend', (e) => { e.preventDefault(); shoot(); }, { passive: false });
+
+  // Also unlock on any button press so menus/start work too
+  document.addEventListener('pointerdown', unlockAudio);
 
   // Buttons
   document.getElementById('startBtn').addEventListener('click', () => {
