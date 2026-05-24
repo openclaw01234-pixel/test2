@@ -17,7 +17,6 @@
     color: #fff; overflow: hidden;
     user-select: none; -webkit-user-select: none; -webkit-tap-highlight-color: transparent;
   }
-  /* Floating background bubbles for ambience */
   body::before, body::after {
     content: ''; position: fixed; border-radius: 50%; pointer-events: none;
     filter: blur(40px); opacity: 0.4;
@@ -50,9 +49,9 @@
     touch-action: none;
     max-width: 100%;
     height: auto;
+    transition: background 0.4s ease;
   }
 
-  /* HUD */
   .hud {
     position: absolute; top: 28px; left: 28px; right: 28px;
     display: flex; justify-content: space-between; gap: 8px;
@@ -74,6 +73,7 @@
   .controls {
     position: absolute; bottom: 28px; right: 28px;
     display: flex; gap: 8px; z-index: 5;
+    flex-wrap: wrap; justify-content: flex-end; max-width: 220px;
   }
   .icon-btn {
     width: 42px; height: 42px; border-radius: 12px;
@@ -82,14 +82,97 @@
     backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px);
     transition: transform 0.15s, background 0.2s;
     display: flex; align-items: center; justify-content: center;
+    pointer-events: auto;
   }
   .icon-btn:hover { background: rgba(255,255,255,0.18); transform: translateY(-2px); }
+
+  /* Side panel for theme + achievements */
+  .side-panel {
+    position: absolute; top: 80px; right: 28px;
+    width: 240px;
+    background: rgba(15, 12, 41, 0.92);
+    border: 1px solid rgba(255,255,255,0.15);
+    border-radius: 16px;
+    padding: 16px;
+    z-index: 6;
+    display: none;
+    backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
+    color: #fff;
+    max-height: 480px; overflow-y: auto;
+  }
+  .side-panel.open { display: block; animation: slideIn 0.25s ease; }
+  @keyframes slideIn {
+    from { opacity: 0; transform: translateX(10px); }
+    to   { opacity: 1; transform: translateX(0); }
+  }
+  .side-panel h3 {
+    font-size: 13px; text-transform: uppercase; letter-spacing: 1.5px;
+    color: #b9b9d4; margin-bottom: 10px; font-weight: 700;
+  }
+  .theme-grid {
+    display: grid; grid-template-columns: 1fr 1fr; gap: 8px;
+    margin-bottom: 16px;
+  }
+  .theme-btn {
+    padding: 10px 8px; border-radius: 10px; border: 2px solid transparent;
+    cursor: pointer; color: #fff; font-weight: 700; font-size: 12px;
+    transition: all 0.2s; text-align: center;
+  }
+  .theme-btn.active { border-color: #ffd93d; transform: scale(1.05); }
+  .theme-btn:hover { transform: scale(1.03); }
+  .theme-sky    { background: linear-gradient(135deg, #6dd5ed, #9ed666); }
+  .theme-neon   { background: linear-gradient(135deg, #25004d, #ff006e); }
+  .theme-candy  { background: linear-gradient(135deg, #ffb6c1, #fffacd); color: #5a1f3d; }
+  .theme-ocean  { background: linear-gradient(135deg, #00b4d8, #03045e); }
+
+  .ach-list { display: flex; flex-direction: column; gap: 6px; }
+  .ach-item {
+    display: flex; align-items: center; gap: 10px;
+    padding: 8px 10px; border-radius: 10px;
+    background: rgba(255,255,255,0.05);
+    border: 1px solid rgba(255,255,255,0.08);
+    font-size: 12px;
+    transition: all 0.2s;
+  }
+  .ach-item.unlocked {
+    background: linear-gradient(135deg, rgba(255,217,61,0.15), rgba(255,107,157,0.1));
+    border-color: rgba(255,217,61,0.4);
+  }
+  .ach-item .icon { font-size: 18px; flex-shrink: 0; filter: grayscale(1); opacity: 0.5; }
+  .ach-item.unlocked .icon { filter: none; opacity: 1; }
+  .ach-item .body { flex: 1; min-width: 0; }
+  .ach-item .name { font-weight: 700; color: #fff; }
+  .ach-item .desc { color: #9c9cbf; font-size: 10px; line-height: 1.3; margin-top: 1px; }
+
+  /* Achievement toast */
+  .toast {
+    position: absolute; top: 80px; left: 50%;
+    transform: translateX(-50%) translateY(-20px);
+    background: linear-gradient(135deg, #ffd93d, #ff9472);
+    color: #2a1a45;
+    padding: 10px 18px;
+    border-radius: 50px;
+    font-weight: 800; font-size: 13px;
+    box-shadow: 0 10px 30px rgba(255,217,61,0.4);
+    pointer-events: none; opacity: 0;
+    z-index: 8;
+    display: flex; align-items: center; gap: 8px;
+    white-space: nowrap;
+  }
+  .toast.show { animation: toastShow 3s ease forwards; }
+  .toast .icon { font-size: 20px; }
+  @keyframes toastShow {
+    0%   { opacity: 0; transform: translateX(-50%) translateY(-20px); }
+    10%  { opacity: 1; transform: translateX(-50%) translateY(0); }
+    85%  { opacity: 1; transform: translateX(-50%) translateY(0); }
+    100% { opacity: 0; transform: translateX(-50%) translateY(-20px); }
+  }
 
   /* Overlays */
   .overlay {
     position: absolute; inset: 16px;
     display: flex; flex-direction: column; align-items: center; justify-content: center;
-    background: rgba(15, 12, 41, 0.85);
+    background: rgba(15, 12, 41, 0.88);
     backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px);
     border-radius: 14px;
     z-index: 10; text-align: center; padding: 30px;
@@ -111,6 +194,14 @@
     background: linear-gradient(135deg, #ffd93d, #ff9472);
     -webkit-background-clip: text; background-clip: text; color: transparent;
   }
+  .powerup-legend {
+    display: flex; gap: 14px; margin-bottom: 18px; flex-wrap: wrap; justify-content: center;
+    color: #cfd0e8; font-size: 11px;
+  }
+  .powerup-legend span {
+    display: flex; align-items: center; gap: 4px;
+    background: rgba(255,255,255,0.06); padding: 5px 10px; border-radius: 50px;
+  }
   .btn {
     padding: 14px 36px; border-radius: 50px; border: none;
     background: linear-gradient(135deg, #ff6b9d 0%, #c44dff 100%);
@@ -122,7 +213,6 @@
   .btn:active { transform: translateY(0); }
   .hint { font-size: 12px; color: #9c9cbf; margin-top: 18px; }
 
-  /* Combo flash */
   .combo-flash {
     position: absolute; top: 50%; left: 50%;
     transform: translate(-50%, -50%) scale(0.5);
@@ -150,6 +240,7 @@
     .overlay h2 { font-size: 1.5rem; }
     .hud-item { padding: 6px 10px; min-width: 60px; }
     .hud-item .value { font-size: 15px; }
+    .side-panel { width: calc(100% - 36px); right: 18px; }
   }
 </style>
 </head>
@@ -165,16 +256,34 @@
   </div>
 
   <div class="controls">
+    <button class="icon-btn" id="musicBtn" title="Toggle music">&#127925;</button>
     <button class="icon-btn" id="soundBtn" title="Toggle sound">&#128266;</button>
+    <button class="icon-btn" id="themeBtn" title="Themes &amp; Achievements">&#127912;</button>
     <button class="icon-btn" id="pauseBtn" title="Pause">&#10074;&#10074;</button>
     <button class="icon-btn" id="restartBtn" title="Restart">&#8635;</button>
   </div>
 
+  <div class="side-panel" id="sidePanel">
+    <h3>Theme</h3>
+    <div class="theme-grid" id="themeGrid"></div>
+    <h3>Achievements <span id="achCount" style="color:#ffd93d;">0/0</span></h3>
+    <div class="ach-list" id="achList"></div>
+  </div>
+
   <div class="combo-flash" id="comboFlash"></div>
+  <div class="toast" id="toast">
+    <span class="icon" id="toastIcon">&#127942;</span>
+    <span><b id="toastTitle">Achievement Unlocked!</b><br><span id="toastDesc" style="font-weight:500; opacity:0.85;"></span></span>
+  </div>
 
   <div class="overlay" id="startScreen">
     <h1>Bubble Shooter</h1>
-    <p>Match <b>3 or more</b> bubbles of the same color to pop them. Drop floating clusters for bonus points. Clear the board to advance!</p>
+    <p>Match <b>3 or more</b> bubbles of the same color to pop them. Drop floating clusters for bonus points. Watch out for <b>power-ups</b>!</p>
+    <div class="powerup-legend">
+      <span>&#128163; Bomb</span>
+      <span>&#127752; Rainbow</span>
+      <span>&#9889; Lightning</span>
+    </div>
     <button class="btn" id="startBtn">Start Game</button>
     <p class="hint">Mouse / finger to aim &middot; Click / tap to shoot</p>
   </div>
@@ -197,11 +306,10 @@
 (function () {
   'use strict';
 
-  // ---------- Setup ----------
+  // ---------- DOM ----------
   const canvas    = document.getElementById('game');
   const ctx       = canvas.getContext('2d');
   const W = canvas.width, H = canvas.height;
-
   const scoreEl   = document.getElementById('score');
   const levelEl   = document.getElementById('level');
   const bestEl    = document.getElementById('best');
@@ -212,31 +320,109 @@
   const goMsg     = document.getElementById('gameOverMsg');
   const finalScoreEl = document.getElementById('finalScore');
   const comboFlash = document.getElementById('comboFlash');
+  const sidePanel = document.getElementById('sidePanel');
+  const themeGrid = document.getElementById('themeGrid');
+  const achList   = document.getElementById('achList');
+  const achCountEl= document.getElementById('achCount');
+  const toast     = document.getElementById('toast');
+  const toastIcon = document.getElementById('toastIcon');
+  const toastTitle= document.getElementById('toastTitle');
+  const toastDesc = document.getElementById('toastDesc');
 
   // ---------- Constants ----------
   const RADIUS    = 20;
   const ROW_H     = RADIUS * Math.sqrt(3);
-  const COLS_EVEN = 11;        // even rows: 11 bubbles
-  const COLS_ODD  = 10;        // odd rows: 10 bubbles (offset)
+  const COLS_EVEN = 11;
+  const COLS_ODD  = 10;
   const TOTAL_ROWS = 14;
   const TOP_OFFSET = 30;
   const DANGER_Y   = H - 110;
   const SHOOTER_Y  = H - 50;
-  const COLORS    = ['#ff3b30', '#ff9500', '#ffd60a', '#34c759', '#0a84ff', '#bf5af2'];
+  const POWERUP_TYPES = ['bomb', 'rainbow', 'lightning'];
+  const POWERUP_CHANCE = 0.13;          // chance that a fresh projectile is a power-up
+  const SHOTS_BEFORE_FIRST_POWERUP = 4; // give player a few normal shots first
+
+  // ---------- Themes ----------
+  const THEMES = {
+    sky: {
+      name: 'Sky',
+      bg: 'linear-gradient(180deg, #6dd5ed 0%, #8fdcf0 35%, #b8e6f5 70%, #d6f0ad 92%, #9ed666 100%)',
+      colors: ['#ff3b30', '#ff9500', '#ffd60a', '#34c759', '#0a84ff', '#bf5af2'],
+      uiText: 'rgba(20, 30, 60, 0.85)',
+      cannonGrad: ['#5a4a7a', '#8a7ab8', '#3a2f55'],
+      cannonStroke: '#2a1f45',
+      shadeBoxBg: 'rgba(0, 20, 40, 0.18)'
+    },
+    neon: {
+      name: 'Neon',
+      bg: 'linear-gradient(180deg, #0a0026 0%, #1a0040 50%, #25004d 100%)',
+      colors: ['#ff006e', '#fb5607', '#ffbe0b', '#06ffa5', '#3a86ff', '#8338ec'],
+      uiText: 'rgba(220, 220, 255, 0.9)',
+      cannonGrad: ['#1a0040', '#5a3aa0', '#0a0026'],
+      cannonStroke: '#ff006e',
+      shadeBoxBg: 'rgba(255, 255, 255, 0.08)'
+    },
+    candy: {
+      name: 'Candy',
+      bg: 'linear-gradient(180deg, #ffd1dc 0%, #ffb6c1 35%, #ffc0cb 70%, #fffacd 100%)',
+      colors: ['#ff1493', '#ff8c00', '#ffd700', '#7cfc00', '#00bfff', '#dda0dd'],
+      uiText: 'rgba(80, 30, 60, 0.85)',
+      cannonGrad: ['#c41e7a', '#ff69b4', '#a01060'],
+      cannonStroke: '#660033',
+      shadeBoxBg: 'rgba(80, 30, 60, 0.15)'
+    },
+    ocean: {
+      name: 'Ocean',
+      bg: 'linear-gradient(180deg, #00b4d8 0%, #0077b6 50%, #03045e 100%)',
+      colors: ['#ff6b6b', '#feca57', '#48dbfb', '#1dd1a1', '#5f27cd', '#ee5253'],
+      uiText: 'rgba(220, 240, 255, 0.92)',
+      cannonGrad: ['#03045e', '#0077b6', '#001233'],
+      cannonStroke: '#48dbfb',
+      shadeBoxBg: 'rgba(255, 255, 255, 0.1)'
+    }
+  };
+  let currentTheme = 'sky';
+  let COLORS = THEMES[currentTheme].colors;
   const bubbleCache = {};
 
+  // ---------- Achievements ----------
+  const ACHIEVEMENTS = {
+    first_pop:       { name: 'First Pop',       desc: 'Pop your first match',     icon: '\u{1F3AF}' },
+    combo_3:         { name: 'Triple Combo',    desc: 'Hit a x3 combo',           icon: '\u{1F525}' },
+    combo_5:         { name: 'Combo Master',    desc: 'Hit a x5 combo',           icon: '\u{2728}' },
+    drop_5:          { name: 'Cluster Buster',  desc: 'Drop 5+ in one shot',      icon: '\u{1F4A5}' },
+    drop_10:         { name: 'Avalanche',       desc: 'Drop 10+ in one shot',     icon: '\u{1F30B}' },
+    level_5:         { name: 'Halfway',         desc: 'Reach level 5',            icon: '\u{1F680}' },
+    level_10:        { name: 'Veteran',         desc: 'Reach level 10',           icon: '\u{1F451}' },
+    score_1k:        { name: 'First Thousand',  desc: 'Score 1,000 points',       icon: '\u{1F4AF}' },
+    score_5k:        { name: 'High Scorer',     desc: 'Score 5,000 points',       icon: '\u{2B50}' },
+    score_10k:       { name: 'Elite',           desc: 'Score 10,000 points',      icon: '\u{1F3C6}' },
+    bomb_use:        { name: 'Boom!',           desc: 'Use a bomb power-up',      icon: '\u{1F4A3}' },
+    rainbow_use:     { name: 'Rainbow Magic',   desc: 'Use a rainbow power-up',   icon: '\u{1F308}' },
+    lightning_use:   { name: 'Lightning Strike',desc: 'Use a lightning power-up', icon: '\u{26A1}' },
+    theme_explorer:  { name: 'Theme Explorer',  desc: 'Try all 4 themes',         icon: '\u{1F3A8}' }
+  };
+  let unlockedAchievements = {};
+  let themesTried = {};
+  try {
+    unlockedAchievements = JSON.parse(localStorage.getItem('bs_achievements') || '{}');
+    themesTried = JSON.parse(localStorage.getItem('bs_themes_tried') || '{}');
+    currentTheme = localStorage.getItem('bs_theme') || 'sky';
+    if (!THEMES[currentTheme]) currentTheme = 'sky';
+    COLORS = THEMES[currentTheme].colors;
+  } catch (e) {}
+
   // ---------- State ----------
-  let grid, projectile, nextColor, particles, popups, fallingBubbles;
+  let grid, projectile, nextColor, nextSpecial, particles, popups, fallingBubbles;
   let shooter, score, level, best, combo, shotsLeft, shotsToAdvance, state;
-  let soundOn = true;
+  let totalShots, screenShake = 0;
+  let soundOn = true, musicOn = true;
 
   best = +(localStorage.getItem('bs_best') || 0);
   bestEl.textContent = best;
 
-  // ---------- Audio (small synth) ----------
-  let audioCtx = null;
-  let audioUnlocked = false;
-
+  // ---------- Audio ----------
+  let audioCtx = null, audioUnlocked = false, musicTimer = null;
   function initAudio() {
     if (audioCtx) return audioCtx;
     try {
@@ -246,26 +432,20 @@
     } catch (e) { return null; }
     return audioCtx;
   }
-
-  // Browsers (especially mobile Safari) require a user gesture before any
-  // audio can play. We attach this to the first click/touch so the very first
-  // shot makes a sound.
   function unlockAudio() {
-    const ac = initAudio();
-    if (!ac) return;
+    const ac = initAudio(); if (!ac) return;
     if (ac.state === 'suspended') ac.resume().catch(() => {});
     if (!audioUnlocked) {
-      // play an inaudible blip to fully wake the context on iOS
       try {
         const o = ac.createOscillator(); const g = ac.createGain();
         g.gain.value = 0.0001;
         o.connect(g); g.connect(ac.destination);
         o.start(); o.stop(ac.currentTime + 0.02);
-      } catch (e) { /* ignore */ }
+      } catch (e) {}
       audioUnlocked = true;
+      if (musicOn) startMusic();
     }
   }
-
   function beep(freq, dur, type, vol) {
     if (!soundOn) return;
     const ac = initAudio(); if (!ac) return;
@@ -273,30 +453,84 @@
     try {
       const o = ac.createOscillator(); const g = ac.createGain();
       o.type = type || 'sine'; o.frequency.value = freq;
-      const v = vol || 0.08;
-      g.gain.setValueAtTime(v, ac.currentTime);
+      g.gain.setValueAtTime(vol || 0.08, ac.currentTime);
       o.connect(g); g.connect(ac.destination);
       o.start();
       g.gain.exponentialRampToValueAtTime(0.0001, ac.currentTime + (dur || 0.15));
       o.stop(ac.currentTime + (dur || 0.15));
-    } catch (e) { /* ignore */ }
+    } catch (e) {}
   }
-  function popSound()   { beep(560 + Math.random() * 200, 0.12, 'triangle', 0.07); }
-  function shootSound() { beep(220, 0.08, 'square', 0.05); }
-  function comboSound() { beep(880, 0.18, 'sine', 0.1); setTimeout(() => beep(1100, 0.18, 'sine', 0.1), 80); }
-  function dropSound()  { beep(140, 0.25, 'sawtooth', 0.06); }
+  function popSound()       { beep(560 + Math.random() * 200, 0.12, 'triangle', 0.07); }
+  function shootSound()     { beep(220, 0.08, 'square', 0.05); }
+  function comboSound()     { beep(880, 0.18, 'sine', 0.1); setTimeout(() => beep(1100, 0.18, 'sine', 0.1), 80); }
+  function dropSound()      { beep(140, 0.25, 'sawtooth', 0.06); }
+  function bombSound()      {
+    beep(80, 0.3, 'sawtooth', 0.15);
+    setTimeout(() => beep(50, 0.4, 'sawtooth', 0.12), 50);
+  }
+  function rainbowSound()   {
+    [523, 659, 784, 988, 1175].forEach((f, i) => setTimeout(() => beep(f, 0.12, 'sine', 0.06), i * 60));
+  }
+  function lightningSound() {
+    beep(1500, 0.05, 'square', 0.08);
+    setTimeout(() => beep(800, 0.1, 'sawtooth', 0.07), 30);
+    setTimeout(() => beep(400, 0.2, 'sawtooth', 0.06), 80);
+  }
+  function achSound()       {
+    [659, 784, 988, 1318].forEach((f, i) => setTimeout(() => beep(f, 0.15, 'triangle', 0.08), i * 90));
+  }
+
+  // Background music — gentle ambient melody loop
+  const MELODY = [
+    [523.25, 0.4], [659.25, 0.4], [783.99, 0.6], [659.25, 0.4],
+    [880.00, 0.4], [783.99, 0.6], [659.25, 0.4], [523.25, 0.8],
+    [587.33, 0.4], [739.99, 0.4], [880.00, 0.6], [739.99, 0.4],
+    [987.77, 0.4], [880.00, 0.6], [783.99, 0.4], [659.25, 0.8]
+  ];
+  function startMusic() {
+    if (musicTimer || !musicOn) return;
+    let idx = 0;
+    function playNext() {
+      if (!musicOn) { musicTimer = null; return; }
+      const note = MELODY[idx];
+      // soft sine for melody
+      const ac = initAudio();
+      if (ac && soundOn) {
+        try {
+          const o = ac.createOscillator(); const g = ac.createGain();
+          o.type = 'sine'; o.frequency.value = note[0];
+          g.gain.setValueAtTime(0, ac.currentTime);
+          g.gain.linearRampToValueAtTime(0.025, ac.currentTime + 0.05);
+          g.gain.exponentialRampToValueAtTime(0.0001, ac.currentTime + note[1] * 0.95);
+          o.connect(g); g.connect(ac.destination);
+          o.start();
+          o.stop(ac.currentTime + note[1]);
+          // bass note (octave below)
+          const bo = ac.createOscillator(); const bg = ac.createGain();
+          bo.type = 'sine'; bo.frequency.value = note[0] / 2;
+          bg.gain.setValueAtTime(0, ac.currentTime);
+          bg.gain.linearRampToValueAtTime(0.012, ac.currentTime + 0.05);
+          bg.gain.exponentialRampToValueAtTime(0.0001, ac.currentTime + note[1] * 0.95);
+          bo.connect(bg); bg.connect(ac.destination);
+          bo.start();
+          bo.stop(ac.currentTime + note[1]);
+        } catch (e) {}
+      }
+      idx = (idx + 1) % MELODY.length;
+      musicTimer = setTimeout(playNext, note[1] * 1000);
+    }
+    playNext();
+  }
+  function stopMusic() {
+    if (musicTimer) { clearTimeout(musicTimer); musicTimer = null; }
+  }
 
   // ---------- Hex grid utilities ----------
   function maxCols(row) { return (row % 2 === 0) ? COLS_EVEN : COLS_ODD; }
-
   function gridToPixel(row, col) {
     const offset = (row % 2 === 1) ? RADIUS : 0;
-    return {
-      x: col * RADIUS * 2 + RADIUS + offset,
-      y: row * ROW_H + RADIUS + TOP_OFFSET
-    };
+    return { x: col * RADIUS * 2 + RADIUS + offset, y: row * ROW_H + RADIUS + TOP_OFFSET };
   }
-
   function getNeighbors(row, col) {
     const odd = row % 2 === 1;
     const dirs = odd
@@ -309,14 +543,11 @@
     }
     return list;
   }
-
-  function makeBubble(row, col, color) {
+  function makeBubble(row, col, color, special) {
     const p = gridToPixel(row, col);
-    return { row, col, color, x: p.x, y: p.y, alive: true, falling: false, vy: 0, scale: 1 };
+    return { row, col, color, special: special || null, x: p.x, y: p.y, alive: true, falling: false, vy: 0, scale: 1 };
   }
 
-  // Spatial lookup: only test grid cells near the given pixel — ~9 cells max
-  // instead of iterating the entire grid every frame.
   function nearbyHit(px, py) {
     const approxRow = Math.floor((py - TOP_OFFSET - RADIUS) / ROW_H + 0.5);
     const lim = (RADIUS * 2 - 2);
@@ -359,66 +590,138 @@
     popups = [];
     fallingBubbles = [];
     combo = 0;
+    totalShots = 0;
     shooter = { x: W / 2, y: SHOOTER_Y, angle: -Math.PI / 2 };
     projectile = null;
-    nextColor = randomColor();
+    pickNextProjectile();
     spawnProjectile();
   }
-
   function activeColors() {
     const set = new Set();
     for (let r = 0; r < grid.length; r++)
       for (let c = 0; c < grid[r].length; c++)
-        if (grid[r][c] && grid[r][c].alive) set.add(grid[r][c].color);
+        if (grid[r][c] && grid[r][c].alive && !grid[r][c].special) set.add(grid[r][c].color);
     return set.size ? [...set] : COLORS.slice(0, 4);
   }
-
   function randomColor() {
     const pool = activeColors();
     return pool[Math.floor(Math.random() * pool.length)];
   }
-
+  function pickNextProjectile() {
+    // chance of a power-up after the first few shots
+    if (totalShots >= SHOTS_BEFORE_FIRST_POWERUP && Math.random() < POWERUP_CHANCE) {
+      nextSpecial = POWERUP_TYPES[Math.floor(Math.random() * POWERUP_TYPES.length)];
+      nextColor = (nextSpecial === 'rainbow') ? '#ffffff' : randomColor();
+    } else {
+      nextSpecial = null;
+      nextColor = randomColor();
+    }
+  }
   function spawnProjectile() {
-    projectile = { x: shooter.x, y: shooter.y, vx: 0, vy: 0, color: nextColor, flying: false };
-    nextColor = randomColor();
+    projectile = {
+      x: shooter.x, y: shooter.y, vx: 0, vy: 0,
+      color: nextColor, special: nextSpecial, flying: false
+    };
+    pickNextProjectile();
   }
 
   // ---------- Shooting ----------
   function shoot() {
     if (state !== 'playing' || !projectile || projectile.flying) return;
     const speed = 16;
-    // Clamp angle so we don't shoot straight down / sideways
     let a = shooter.angle;
     const minA = -Math.PI + 0.08, maxA = -0.08;
     if (a > maxA) a = maxA; if (a < minA) a = minA;
     projectile.vx = Math.cos(a) * speed;
     projectile.vy = Math.sin(a) * speed;
     projectile.flying = true;
+    totalShots++;
     shootSound();
   }
-
   function updateProjectile() {
     if (!projectile || !projectile.flying) return;
     projectile.x += projectile.vx;
     projectile.y += projectile.vy;
-
-    // Wall bounce
     if (projectile.x < RADIUS) { projectile.x = RADIUS; projectile.vx = Math.abs(projectile.vx); }
     if (projectile.x > W - RADIUS) { projectile.x = W - RADIUS; projectile.vx = -Math.abs(projectile.vx); }
-
-    // Ceiling
-    if (projectile.y < RADIUS + TOP_OFFSET) {
-      snapToGrid(); return;
-    }
-
-    // Bubble collision (spatial — only nearby cells)
+    if (projectile.y < RADIUS + TOP_OFFSET) { snapToGrid(); return; }
     if (nearbyHit(projectile.x, projectile.y)) { snapToGrid(); return; }
-
     if (projectile.y > H + RADIUS) { spawnProjectile(); combo = 0; }
   }
 
+  // ---------- Power-up effects ----------
+  function triggerBomb(centerRow, centerCol, x, y) {
+    unlock('bomb_use');
+    bombSound();
+    screenShake = 18;
+    // explosion particles
+    for (let i = 0; i < 40; i++) {
+      const ang = Math.random() * Math.PI * 2;
+      const sp  = 3 + Math.random() * 6;
+      particles.push({
+        x, y, vx: Math.cos(ang) * sp, vy: Math.sin(ang) * sp - 1,
+        color: '#ff9500', life: 1.2, size: 3 + Math.random() * 4
+      });
+    }
+    // pop bubbles within radius of 2 cells
+    const cleared = [];
+    for (let r = 0; r < grid.length; r++) {
+      for (let c = 0; c < grid[r].length; c++) {
+        const b = grid[r][c];
+        if (!b || !b.alive || b.falling) continue;
+        const dx = b.x - x, dy = b.y - y;
+        if (dx * dx + dy * dy < (RADIUS * 4.5) * (RADIUS * 4.5)) cleared.push(b);
+      }
+    }
+    cleared.forEach(b => {
+      b.alive = false;
+      spawnPopParticles(b.x, b.y, b.color, 10);
+    });
+    return cleared.length;
+  }
+  function triggerLightning(centerRow, centerCol, x, y) {
+    unlock('lightning_use');
+    lightningSound();
+    screenShake = 10;
+    // lightning particles up the row
+    for (let i = 0; i < 30; i++) {
+      const px = Math.random() * W;
+      particles.push({
+        x: px, y: gridToPixel(centerRow, 0).y,
+        vx: (Math.random() - 0.5) * 2, vy: (Math.random() - 0.5) * 4,
+        color: '#fffacd', life: 1, size: 2 + Math.random() * 3
+      });
+    }
+    const cleared = [];
+    for (let c = 0; c < grid[centerRow].length; c++) {
+      const b = grid[centerRow][c];
+      if (b && b.alive && !b.falling) cleared.push(b);
+    }
+    cleared.forEach(b => {
+      b.alive = false;
+      spawnPopParticles(b.x, b.y, b.color, 8);
+    });
+    return cleared.length;
+  }
+  function triggerRainbow(placed) {
+    unlock('rainbow_use');
+    rainbowSound();
+    // flood-fill to find any connected color cluster including this rainbow
+    // approach: pick the most common neighbor color and treat rainbow as that
+    const nbrs = getNeighbors(placed.row, placed.col);
+    const counts = {};
+    for (const [nr, nc] of nbrs) {
+      const b = grid[nr][nc];
+      if (b && b.alive && !b.special) counts[b.color] = (counts[b.color] || 0) + 1;
+    }
+    let best = null, bestN = 0;
+    for (const k in counts) if (counts[k] > bestN) { bestN = counts[k]; best = k; }
+    if (best) placed.color = best;
+    placed.special = null;
+    // returns the cluster found via normal findMatches
+  }
+
   function snapToGrid() {
-    // Find nearest empty cell that touches an existing bubble or top row
     let bestCell = null, bestDist = Infinity;
     for (let r = 0; r < grid.length; r++) {
       for (let c = 0; c < maxCols(r); c++) {
@@ -440,39 +743,67 @@
     }
     if (!bestCell) { spawnProjectile(); return; }
 
-    const placed = makeBubble(bestCell.row, bestCell.col, projectile.color);
+    const placed = makeBubble(bestCell.row, bestCell.col, projectile.color, projectile.special);
     placed.scale = 0.6;
     grid[bestCell.row][bestCell.col] = placed;
 
-    const matches = findMatches(bestCell.row, bestCell.col);
-    if (matches.length >= 3) {
-      combo++;
-      let total = 0;
-      for (let i = 0; i < matches.length; i++) {
-        const b = matches[i];
-        b.alive = false;
-        spawnPopParticles(b.x, b.y, b.color, 14);
-        total += 10;
-      }
-      const points = total * combo;
-      score += points;
-      popSound();
-      showPopup(placed.x, placed.y - 10, '+' + points, '#ffd93d');
-      if (combo >= 2) {
-        flashCombo(combo);
-        comboSound();
-      }
-      // Drop floating bubbles after a tiny delay so the visual lands right
-      setTimeout(dropFloating, 60);
-    } else {
-      combo = 0;
+    let powerUpPoints = 0;
+    let usedPowerUp = false;
+
+    // Handle power-ups
+    if (placed.special === 'bomb') {
+      const n = triggerBomb(placed.row, placed.col, placed.x, placed.y);
+      placed.alive = false;
+      grid[bestCell.row][bestCell.col] = null;
+      powerUpPoints = n * 25;
+      usedPowerUp = true;
+    } else if (placed.special === 'lightning') {
+      const n = triggerLightning(placed.row, placed.col, placed.x, placed.y);
+      placed.alive = false;
+      grid[bestCell.row][bestCell.col] = null;
+      powerUpPoints = n * 20;
+      usedPowerUp = true;
+    } else if (placed.special === 'rainbow') {
+      triggerRainbow(placed);
+      // continue with normal match logic on the morphed bubble
     }
 
-    shotsLeft--;
-    if (shotsLeft <= 0) {
-      addNewRow();
-      shotsLeft = shotsToAdvance;
+    if (usedPowerUp) {
+      score += powerUpPoints;
+      showPopup(placed.x, placed.y - 10, '+' + powerUpPoints, '#ffd93d');
+    } else {
+      const matches = findMatches(bestCell.row, bestCell.col);
+      if (matches.length >= 3) {
+        combo++;
+        let total = 0;
+        matches.forEach(b => {
+          b.alive = false;
+          spawnPopParticles(b.x, b.y, b.color, 14);
+          total += 10;
+        });
+        const points = total * combo;
+        score += points;
+        unlock('first_pop');
+        if (combo >= 3) unlock('combo_3');
+        if (combo >= 5) unlock('combo_5');
+        popSound();
+        showPopup(placed.x, placed.y - 10, '+' + points, '#ffd93d');
+        if (combo >= 2) { flashCombo(combo); comboSound(); }
+        setTimeout(dropFloating, 60);
+      } else {
+        combo = 0;
+      }
     }
+
+    if (usedPowerUp) setTimeout(dropFloating, 80);
+
+    shotsLeft--;
+    if (shotsLeft <= 0) { addNewRow(); shotsLeft = shotsToAdvance; }
+
+    // Score-based achievements
+    if (score >= 1000)  unlock('score_1k');
+    if (score >= 5000)  unlock('score_5k');
+    if (score >= 10000) unlock('score_10k');
 
     checkGameState();
     if (state === 'playing') spawnProjectile();
@@ -480,7 +811,7 @@
 
   function findMatches(row, col) {
     const start = grid[row][col];
-    if (!start) return [];
+    if (!start || start.special) return [];
     const visited = new Set();
     const stack = [[row, col]];
     const out = [];
@@ -490,7 +821,8 @@
       if (visited.has(key)) continue;
       visited.add(key);
       const b = grid[r] && grid[r][c];
-      if (!b || !b.alive || b.color !== start.color) continue;
+      if (!b || !b.alive || b.special) continue;
+      if (b.color !== start.color) continue;
       out.push(b);
       const nbrs = getNeighbors(r, c);
       for (let i = 0; i < nbrs.length; i++) stack.push(nbrs[i]);
@@ -533,26 +865,24 @@
       score += bonus;
       showPopup(W / 2, H / 2 - 80, 'Drop +' + bonus + '!', '#00d2ff');
       dropSound();
+      if (dropped >= 5)  unlock('drop_5');
+      if (dropped >= 10) unlock('drop_10');
     }
   }
 
   function addNewRow() {
-    // Collect all alive bubbles, push down by 1 row
     const all = [];
     for (let r = 0; r < grid.length; r++)
       for (let c = 0; c < grid[r].length; c++)
         if (grid[r][c] && grid[r][c].alive && !grid[r][c].falling) all.push(grid[r][c]);
-
     grid = [];
     for (let r = 0; r < TOTAL_ROWS; r++) grid.push(new Array(maxCols(r)).fill(null));
-
     for (let i = 0; i < all.length; i++) {
       const b = all[i];
       const newRow = b.row + 1;
       if (newRow >= grid.length) continue;
       let newCol = b.col;
       if (newCol >= maxCols(newRow)) newCol = maxCols(newRow) - 1;
-      // Find any empty spot in target row near desired col
       if (grid[newRow][newCol]) {
         let placed = false;
         for (let off = 1; off < maxCols(newRow); off++) {
@@ -566,8 +896,6 @@
       b.x = p.x; b.y = p.y;
       grid[newRow][newCol] = b;
     }
-
-    // New top row
     const pool = activeColors();
     for (let c = 0; c < maxCols(0); c++) {
       const color = pool[Math.floor(Math.random() * pool.length)];
@@ -599,12 +927,8 @@
       const angle = (Math.PI * 2 * i) / count + Math.random() * 0.4;
       const speed = 1.5 + Math.random() * 3.5;
       particles.push({
-        x, y,
-        vx: Math.cos(angle) * speed,
-        vy: Math.sin(angle) * speed - 1,
-        color,
-        life: 1,
-        size: 2 + Math.random() * 3
+        x, y, vx: Math.cos(angle) * speed, vy: Math.sin(angle) * speed - 1,
+        color, life: 1, size: 2 + Math.random() * 3
       });
     }
   }
@@ -671,7 +995,7 @@
     }
   }
 
-  // ---------- Drawing ----------
+  // ---------- Bubble drawing ----------
   function shade(color, percent) {
     const num = parseInt(color.slice(1), 16);
     let r = (num >> 16) + percent;
@@ -683,12 +1007,9 @@
     return '#' + ((r << 16) | (g << 8) | b).toString(16).padStart(6, '0');
   }
 
-  // Pre-render each color bubble to an offscreen canvas. Drawing every frame
-  // with createRadialGradient is very expensive — caching the sprite once
-  // and using drawImage per bubble is dramatically faster.
-  function buildBubbleSprite(color) {
+  function buildBubbleSprite(color, special) {
     const dpr = Math.min(2, window.devicePixelRatio || 1);
-    const pad = 6;                       // room for outer glow + soft shadow
+    const pad = 6;
     const r   = RADIUS;
     const size = (r + pad) * 2;
     const off = document.createElement('canvas');
@@ -698,34 +1019,48 @@
     c.scale(dpr, dpr);
     const cx = size / 2, cy = size / 2;
 
-    // 1) Soft outer glow (very subtle)
+    // Outer glow
     const glow = c.createRadialGradient(cx, cy, r * 0.92, cx, cy, r + pad);
     glow.addColorStop(0, shade(color, 30) + 'aa');
     glow.addColorStop(1, color + '00');
     c.fillStyle = glow;
     c.beginPath(); c.arc(cx, cy, r + pad - 1, 0, Math.PI * 2); c.fill();
 
-    // 2) Main sphere body — radial gradient offset to upper-left for 3D feel
-    const body = c.createRadialGradient(
-      cx - r * 0.45, cy - r * 0.5, r * 0.05,
-      cx + r * 0.15, cy + r * 0.2,  r * 1.05
-    );
-    body.addColorStop(0.00, shade(color, 90));
-    body.addColorStop(0.18, shade(color, 45));
-    body.addColorStop(0.55, color);
-    body.addColorStop(0.88, shade(color, -25));
-    body.addColorStop(1.00, shade(color, -55));
-    c.fillStyle = body;
-    c.beginPath(); c.arc(cx, cy, r, 0, Math.PI * 2); c.fill();
+    if (special === 'rainbow') {
+      // Rainbow conic-style: draw colored slices then highlights
+      const segs = ['#ff3b30', '#ff9500', '#ffd60a', '#34c759', '#0a84ff', '#bf5af2'];
+      const step = (Math.PI * 2) / segs.length;
+      for (let i = 0; i < segs.length; i++) {
+        c.beginPath();
+        c.moveTo(cx, cy);
+        c.arc(cx, cy, r, -Math.PI / 2 + i * step, -Math.PI / 2 + (i + 1) * step);
+        c.closePath();
+        c.fillStyle = segs[i];
+        c.fill();
+      }
+    } else {
+      // Body sphere
+      const body = c.createRadialGradient(
+        cx - r * 0.45, cy - r * 0.5, r * 0.05,
+        cx + r * 0.15, cy + r * 0.2,  r * 1.05
+      );
+      body.addColorStop(0.00, shade(color, 90));
+      body.addColorStop(0.18, shade(color, 45));
+      body.addColorStop(0.55, color);
+      body.addColorStop(0.88, shade(color, -25));
+      body.addColorStop(1.00, shade(color, -55));
+      c.fillStyle = body;
+      c.beginPath(); c.arc(cx, cy, r, 0, Math.PI * 2); c.fill();
+    }
 
-    // 3) Dark inner rim for depth
+    // Dark inner rim
     const rim = c.createRadialGradient(cx, cy, r * 0.82, cx, cy, r);
     rim.addColorStop(0, 'rgba(0,0,0,0)');
     rim.addColorStop(1, 'rgba(0,0,0,0.22)');
     c.fillStyle = rim;
     c.beginPath(); c.arc(cx, cy, r, 0, Math.PI * 2); c.fill();
 
-    // 4) Big glossy highlight (upper-left)
+    // Glossy highlight
     c.save();
     c.translate(cx - r * 0.32, cy - r * 0.4);
     c.rotate(-Math.PI / 4);
@@ -737,13 +1072,13 @@
     c.beginPath(); c.ellipse(0, 0, r * 0.5, r * 0.32, 0, 0, Math.PI * 2); c.fill();
     c.restore();
 
-    // 5) Tiny crisp specular dot
+    // Specular dot
     c.fillStyle = 'rgba(255,255,255,1)';
     c.beginPath();
     c.arc(cx - r * 0.42, cy - r * 0.46, r * 0.09, 0, Math.PI * 2);
     c.fill();
 
-    // 6) Soft bottom reflection (light bouncing back)
+    // Bottom reflection
     const bot = c.createRadialGradient(cx + r * 0.05, cy + r * 0.55, 0,
                                        cx + r * 0.05, cy + r * 0.55, r * 0.55);
     bot.addColorStop(0, 'rgba(255,255,255,0.35)');
@@ -751,18 +1086,47 @@
     c.fillStyle = bot;
     c.beginPath(); c.ellipse(cx + r * 0.05, cy + r * 0.55, r * 0.45, r * 0.16, 0, 0, Math.PI * 2); c.fill();
 
+    // Power-up icon overlay
+    if (special === 'bomb') {
+      // Big bomb icon
+      c.font = 'bold ' + (r * 1.1) + 'px "Segoe UI Emoji", sans-serif';
+      c.textAlign = 'center'; c.textBaseline = 'middle';
+      c.fillStyle = 'rgba(0,0,0,0.85)';
+      c.fillText('\u{1F4A3}', cx, cy + 2);
+    } else if (special === 'lightning') {
+      // Lightning bolt
+      c.font = 'bold ' + (r * 1.2) + 'px "Segoe UI Emoji", sans-serif';
+      c.textAlign = 'center'; c.textBaseline = 'middle';
+      c.fillStyle = '#fffacd';
+      c.shadowColor = '#fff'; c.shadowBlur = 8;
+      c.fillText('\u{26A1}', cx, cy + 2);
+      c.shadowBlur = 0;
+    } else if (special === 'rainbow') {
+      // Star sparkle in center
+      c.font = 'bold ' + (r * 0.9) + 'px "Segoe UI Emoji", sans-serif';
+      c.textAlign = 'center'; c.textBaseline = 'middle';
+      c.fillStyle = '#fff';
+      c.shadowColor = '#fff'; c.shadowBlur = 10;
+      c.fillText('\u{2728}', cx, cy + 1);
+      c.shadowBlur = 0;
+    }
+
     return { canvas: off, drawSize: size };
   }
 
-  function getBubbleSprite(color) {
-    if (!bubbleCache[color]) bubbleCache[color] = buildBubbleSprite(color);
-    return bubbleCache[color];
+  function getBubbleSprite(color, special) {
+    const key = (special || 'plain') + '_' + color + '_' + currentTheme;
+    if (!bubbleCache[key]) bubbleCache[key] = buildBubbleSprite(color, special);
+    return bubbleCache[key];
+  }
+  function clearBubbleCache() {
+    for (const k in bubbleCache) delete bubbleCache[k];
   }
 
-  function drawBubble(x, y, color, scale, alpha) {
+  function drawBubble(x, y, color, scale, alpha, special) {
     scale = scale == null ? 1 : scale;
     alpha = alpha == null ? 1 : alpha;
-    const sprite = getBubbleSprite(color);
+    const sprite = getBubbleSprite(color, special);
     const s = sprite.drawSize * scale;
     if (alpha < 1) {
       ctx.save();
@@ -780,7 +1144,10 @@
         const b = grid[r][c];
         if (!b || !b.alive) continue;
         if (b.scale < 1) b.scale = Math.min(1, b.scale + 0.08);
-        drawBubble(b.x, b.y, b.color, b.scale, b.falling ? 0.9 : 1);
+        // gentle pulse on power-ups
+        let extra = 1;
+        if (b.special) extra = 1 + Math.sin(performance.now() * 0.005) * 0.04;
+        drawBubble(b.x, b.y, b.color, b.scale * extra, b.falling ? 0.9 : 1, b.special);
       }
     }
   }
@@ -798,7 +1165,7 @@
   }
 
   function drawShooter() {
-    // base glow
+    const t = THEMES[currentTheme];
     ctx.save();
     const baseGrad = ctx.createRadialGradient(shooter.x, shooter.y + 10, 5, shooter.x, shooter.y + 10, 55);
     baseGrad.addColorStop(0, 'rgba(255, 255, 255, 0.55)');
@@ -807,21 +1174,19 @@
     ctx.beginPath();
     ctx.arc(shooter.x, shooter.y + 10, 55, 0, Math.PI * 2);
     ctx.fill();
-    // cannon
     ctx.translate(shooter.x, shooter.y);
     ctx.rotate(shooter.angle + Math.PI / 2);
     const cgrd = ctx.createLinearGradient(-7, -34, 7, -4);
-    cgrd.addColorStop(0, '#5a4a7a');
-    cgrd.addColorStop(0.5, '#8a7ab8');
-    cgrd.addColorStop(1, '#3a2f55');
+    cgrd.addColorStop(0, t.cannonGrad[0]);
+    cgrd.addColorStop(0.5, t.cannonGrad[1]);
+    cgrd.addColorStop(1, t.cannonGrad[2]);
     ctx.fillStyle = cgrd;
-    ctx.strokeStyle = '#2a1f45';
+    ctx.strokeStyle = t.cannonStroke;
     ctx.lineWidth = 1.5;
     ctx.beginPath();
     ctx.roundRect ? ctx.roundRect(-7, -34, 14, 30, 4) : ctx.rect(-7, -34, 14, 30);
     ctx.fill(); ctx.stroke();
     ctx.restore();
-    // shooter ring
     ctx.save();
     ctx.strokeStyle = 'rgba(255,255,255,0.7)';
     ctx.lineWidth = 2;
@@ -829,14 +1194,12 @@
     ctx.arc(shooter.x, shooter.y, 26, 0, Math.PI * 2);
     ctx.stroke();
     ctx.restore();
-    // projectile
     if (projectile && !projectile.flying) {
-      drawBubble(shooter.x, shooter.y, projectile.color);
+      drawBubble(shooter.x, shooter.y, projectile.color, 1, 1, projectile.special);
     }
-    // next bubble preview
-    drawBubble(shooter.x - 60, shooter.y + 8, nextColor, 0.6, 0.85);
+    drawBubble(shooter.x - 60, shooter.y + 8, nextColor, 0.6, 0.85, nextSpecial);
     ctx.save();
-    ctx.fillStyle = 'rgba(40, 30, 70, 0.7)';
+    ctx.fillStyle = t.uiText;
     ctx.font = 'bold 9px sans-serif';
     ctx.textAlign = 'center';
     ctx.fillText('NEXT', shooter.x - 60, shooter.y + 32);
@@ -844,7 +1207,9 @@
   }
 
   function drawFlying() {
-    if (projectile && projectile.flying) drawBubble(projectile.x, projectile.y, projectile.color);
+    if (projectile && projectile.flying) {
+      drawBubble(projectile.x, projectile.y, projectile.color, 1, 1, projectile.special);
+    }
   }
 
   function drawAim() {
@@ -854,7 +1219,7 @@
     if (a > maxA) a = maxA; if (a < minA) a = minA;
     let x = shooter.x, y = shooter.y;
     let dx = Math.cos(a), dy = Math.sin(a);
-    const step = 12;                           // bigger step = fewer iterations
+    const step = 12;
     ctx.save();
     ctx.setLineDash([5, 9]);
     ctx.lineWidth = 2;
@@ -869,11 +1234,10 @@
       if (y < RADIUS + TOP_OFFSET) { endX = x; endY = y; break; }
       ctx.lineTo(x, y);
       endX = x; endY = y;
-      if (nearbyHit(x, y)) break;             // spatial check, very fast
+      if (nearbyHit(x, y)) break;
     }
     ctx.stroke();
     ctx.restore();
-    // Target marker
     ctx.save();
     ctx.strokeStyle = 'rgba(255,255,255,0.7)';
     ctx.lineWidth = 1.8;
@@ -884,10 +1248,11 @@
   }
 
   function drawShotsBar() {
+    const t = THEMES[currentTheme];
     const total = shotsToAdvance, used = total - shotsLeft;
     const x = 14, y = SHOOTER_Y - 40, w = 100, h = 6;
     ctx.save();
-    ctx.fillStyle = 'rgba(0, 20, 40, 0.18)';
+    ctx.fillStyle = t.shadeBoxBg;
     ctx.fillRect(x, y, w, h);
     const ratio = used / total;
     const barGrad = ctx.createLinearGradient(x, y, x + w, y);
@@ -895,7 +1260,7 @@
     barGrad.addColorStop(1, '#ff6b9d');
     ctx.fillStyle = barGrad;
     ctx.fillRect(x, y, w * ratio, h);
-    ctx.fillStyle = 'rgba(20, 30, 60, 0.8)';
+    ctx.fillStyle = t.uiText;
     ctx.font = 'bold 9px sans-serif';
     ctx.fillText('NEW ROW IN ' + shotsLeft, x, y - 4);
     ctx.restore();
@@ -908,7 +1273,6 @@
     comboFlash.classList.add('show');
   }
 
-  // ---------- HUD ----------
   function updateHUD() {
     scoreEl.textContent = score;
     levelEl.textContent = level;
@@ -918,6 +1282,12 @@
   // ---------- Game loop ----------
   function loop() {
     ctx.clearRect(0, 0, W, H);
+    ctx.save();
+    if (screenShake > 0) {
+      ctx.translate((Math.random() - 0.5) * screenShake, (Math.random() - 0.5) * screenShake);
+      screenShake *= 0.85;
+      if (screenShake < 0.5) screenShake = 0;
+    }
     drawDangerLine();
     drawGrid();
     if (state === 'playing') drawAim();
@@ -926,6 +1296,7 @@
     drawParticles();
     drawPopups();
     if (state === 'playing') drawShotsBar();
+    ctx.restore();
 
     if (state === 'playing') {
       updateProjectile();
@@ -941,13 +1312,14 @@
     requestAnimationFrame(loop);
   }
 
-  // ---------- End screen ----------
   function showEnd(won) {
     if (won) {
       goTitle.textContent = 'Level ' + level + ' Cleared!';
       goMsg.textContent  = 'Onward to level ' + (level + 1) + '...';
       level++;
-      score += 200; // level bonus
+      score += 200;
+      if (level >= 5)  unlock('level_5');
+      if (level >= 10) unlock('level_10');
     } else {
       goTitle.textContent = 'Game Over';
       goMsg.textContent  = 'The bubbles broke through!';
@@ -968,10 +1340,9 @@
     const mx = (clientX - rect.left) * (W / rect.width);
     const my = (clientY - rect.top) * (H / rect.height);
     const dx = mx - shooter.x, dy = my - shooter.y;
-    if (dy > -10) return; // don't aim downward
+    if (dy > -10) return;
     shooter.angle = Math.atan2(dy, dx);
   }
-
   canvas.addEventListener('mousemove', (e) => pointerAim(e.clientX, e.clientY));
   canvas.addEventListener('mousedown', (e) => { unlockAudio(); pointerAim(e.clientX, e.clientY); shoot(); });
   canvas.addEventListener('touchstart', (e) => {
@@ -983,21 +1354,96 @@
     if (e.touches[0]) pointerAim(e.touches[0].clientX, e.touches[0].clientY);
   }, { passive: false });
   canvas.addEventListener('touchend', (e) => { e.preventDefault(); shoot(); }, { passive: false });
-
-  // Also unlock on any button press so menus/start work too
   document.addEventListener('pointerdown', unlockAudio);
 
-  // Buttons
+  // ---------- Theme switcher ----------
+  function applyTheme(name) {
+    if (!THEMES[name]) return;
+    currentTheme = name;
+    COLORS = THEMES[name].colors;
+    canvas.style.background = THEMES[name].bg;
+    clearBubbleCache();
+    // recolor live grid to current palette (preserve cluster-color positions)
+    if (grid) {
+      const colorMap = {};
+      for (let r = 0; r < grid.length; r++) {
+        for (let c = 0; c < grid[r].length; c++) {
+          const b = grid[r][c];
+          if (!b || !b.alive) continue;
+          if (!b.special) {
+            if (!colorMap[b.color]) {
+              const idx = Object.keys(colorMap).length % COLORS.length;
+              colorMap[b.color] = COLORS[idx];
+            }
+            b.color = colorMap[b.color];
+          }
+        }
+      }
+      // remap nextColor and projectile color too
+      if (nextColor && colorMap[nextColor]) nextColor = colorMap[nextColor];
+      if (projectile && projectile.color && colorMap[projectile.color]) projectile.color = colorMap[projectile.color];
+    }
+    localStorage.setItem('bs_theme', name);
+    themesTried[name] = true;
+    localStorage.setItem('bs_themes_tried', JSON.stringify(themesTried));
+    if (Object.keys(themesTried).length >= 4) unlock('theme_explorer');
+    renderThemeButtons();
+  }
+  function renderThemeButtons() {
+    themeGrid.innerHTML = '';
+    Object.keys(THEMES).forEach(key => {
+      const btn = document.createElement('button');
+      btn.className = 'theme-btn theme-' + key + (key === currentTheme ? ' active' : '');
+      btn.textContent = THEMES[key].name;
+      btn.addEventListener('click', () => applyTheme(key));
+      themeGrid.appendChild(btn);
+    });
+  }
+
+  // ---------- Achievements UI ----------
+  function unlock(id) {
+    if (!ACHIEVEMENTS[id] || unlockedAchievements[id]) return;
+    unlockedAchievements[id] = Date.now();
+    localStorage.setItem('bs_achievements', JSON.stringify(unlockedAchievements));
+    showToast(ACHIEVEMENTS[id].icon, 'Achievement Unlocked!', ACHIEVEMENTS[id].name);
+    achSound();
+    renderAchievements();
+  }
+  function showToast(icon, title, desc) {
+    toastIcon.textContent = icon;
+    toastTitle.textContent = title;
+    toastDesc.textContent = desc;
+    toast.classList.remove('show');
+    void toast.offsetWidth;
+    toast.classList.add('show');
+  }
+  function renderAchievements() {
+    const total = Object.keys(ACHIEVEMENTS).length;
+    const got = Object.keys(unlockedAchievements).length;
+    achCountEl.textContent = got + '/' + total;
+    achList.innerHTML = '';
+    Object.keys(ACHIEVEMENTS).forEach(id => {
+      const a = ACHIEVEMENTS[id];
+      const got = unlockedAchievements[id];
+      const div = document.createElement('div');
+      div.className = 'ach-item' + (got ? ' unlocked' : '');
+      div.innerHTML =
+        '<span class="icon">' + a.icon + '</span>' +
+        '<div class="body"><div class="name">' + a.name + '</div>' +
+        '<div class="desc">' + a.desc + '</div></div>';
+      achList.appendChild(div);
+    });
+  }
+
+  // ---------- Buttons ----------
   document.getElementById('startBtn').addEventListener('click', () => {
     score = 0; level = 1; buildLevel(level);
     state = 'playing'; startScr.style.display = 'none';
+    if (musicOn) startMusic();
   });
   document.getElementById('playAgainBtn').addEventListener('click', () => {
-    if (state === 'win') {
-      buildLevel(level);
-    } else {
-      score = 0; level = 1; buildLevel(level);
-    }
+    if (state === 'win') buildLevel(level);
+    else { score = 0; level = 1; buildLevel(level); }
     state = 'playing';
     gameOverScr.style.display = 'none';
   });
@@ -1018,8 +1464,23 @@
     soundOn = !soundOn;
     e.currentTarget.innerHTML = soundOn ? '&#128266;' : '&#128263;';
   });
+  document.getElementById('musicBtn').addEventListener('click', (e) => {
+    musicOn = !musicOn;
+    e.currentTarget.style.opacity = musicOn ? '1' : '0.45';
+    if (musicOn) startMusic(); else stopMusic();
+  });
+  document.getElementById('themeBtn').addEventListener('click', () => {
+    sidePanel.classList.toggle('open');
+  });
+  document.addEventListener('click', (e) => {
+    if (!sidePanel.contains(e.target) && !document.getElementById('themeBtn').contains(e.target)) {
+      sidePanel.classList.remove('open');
+    }
+  });
 
-  // Init
+  // ---------- Init ----------
+  applyTheme(currentTheme);
+  renderAchievements();
   buildLevel(1);
   state = 'menu';
   loop();
