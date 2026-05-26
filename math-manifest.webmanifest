@@ -1,0 +1,19 @@
+{
+  "name": "Math Stars - Fun Math for Kids",
+  "short_name": "Math Stars",
+  "description": "A fun and colorful math practice game for kids with addition, subtraction, multiplication, division, achievements, and rewards.",
+  "start_url": "math-game.html",
+  "scope": "./",
+  "display": "fullscreen",
+  "orientation": "portrait",
+  "background_color": "#fce7f3",
+  "theme_color": "#7c3aed",
+  "lang": "en",
+  "categories": ["education", "games", "kids"],
+  "icons": [
+    { "src": "icons/math-icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "icons/math-icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+    { "src": "icons/math-icon-maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" },
+    { "src": "icons/math-icon-1024.png", "sizes": "1024x1024", "type": "image/png", "purpose": "any" }
+  ]
+}
