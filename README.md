@@ -5,7 +5,11 @@ A small collection of browser-based projects.
 ## Pages
 
 - [`index.html`](./index.html) — Portfolio site
-- [`bubble-shooter.html`](./bubble-shooter.html) — **Bubble Shooter** (new edition)
+- [`bubble-shooter.html`](./bubble-shooter.html) — **Bubble Shooter** (installable PWA / Android APK)
+
+> 📱 **Want to install Bubble Shooter as an Android app?** See
+> [BUILD_APK.md](./BUILD_APK.md) — covers PWA install, PWABuilder.com,
+> GitHub Actions auto-build, and local Capacitor build.
 
 ## Bubble Shooter — New Edition
 

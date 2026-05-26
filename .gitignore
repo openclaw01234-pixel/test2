@@ -1,0 +1,15 @@
+# Build artifacts
+www/
+node_modules/
+android/
+ios/
+
+# Logs / OS junk
+*.log
+.DS_Store
+Thumbs.db
+
+# Editor
+.vscode/
+.idea/
+*.swp

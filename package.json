@@ -1,0 +1,18 @@
+{
+  "name": "bubble-shooter-app",
+  "version": "1.0.0",
+  "description": "Bubble Shooter — installable PWA, wraps to APK via Capacitor.",
+  "private": true,
+  "scripts": {
+    "prepare-www": "node scripts/prepare-www.js",
+    "build:android": "npm run prepare-www && npx cap sync android && cd android && ./gradlew assembleDebug",
+    "init:android": "npm run prepare-www && npx cap add android && npx cap sync android"
+  },
+  "devDependencies": {
+    "@capacitor/cli": "^6.2.0"
+  },
+  "dependencies": {
+    "@capacitor/android": "^6.2.0",
+    "@capacitor/core": "^6.2.0"
+  }
+}

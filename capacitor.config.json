@@ -1,0 +1,12 @@
+{
+  "appId": "com.bubbleshooter.game",
+  "appName": "Bubble Shooter",
+  "webDir": "www",
+  "server": {
+    "androidScheme": "https"
+  },
+  "android": {
+    "allowMixedContent": false,
+    "backgroundColor": "#0f0c29"
+  }
+}
