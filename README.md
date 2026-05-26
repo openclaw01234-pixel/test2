@@ -7,9 +7,9 @@ A small collection of browser-based projects.
 - [`index.html`](./index.html) — Portfolio site
 - [`bubble-shooter.html`](./bubble-shooter.html) — **Bubble Shooter** (installable PWA / Android APK)
 
-> 📱 **Want to install Bubble Shooter as an Android app?** See
-> [BUILD_APK.md](./BUILD_APK.md) — covers PWA install, PWABuilder.com,
-> GitHub Actions auto-build, and local Capacitor build.
+> 📱 **Install on your Android phone right now**:
+> [`dist/bubble-shooter-debug.apk`](./dist/bubble-shooter-debug.apk) — pre-built and ready to install (~4.6 MB).
+> See [BUILD_APK.md](./BUILD_APK.md) for all install/build options (PWA, PWABuilder, GitHub Actions, local Capacitor).
 
 ## Bubble Shooter — New Edition
 

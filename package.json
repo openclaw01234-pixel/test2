@@ -5,8 +5,9 @@
   "private": true,
   "scripts": {
     "prepare-www": "node scripts/prepare-www.js",
-    "build:android": "npm run prepare-www && npx cap sync android && cd android && ./gradlew assembleDebug",
-    "init:android": "npm run prepare-www && npx cap add android && npx cap sync android"
+    "icons:android": "node scripts/gen-android-icons.js",
+    "build:android": "npm run prepare-www && npx cap sync android && npm run icons:android && cd android && ./gradlew assembleDebug",
+    "init:android": "npm run prepare-www && npx cap add android && npx cap sync android && npm run icons:android"
   },
   "devDependencies": {
     "@capacitor/cli": "^6.2.0"

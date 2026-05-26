@@ -4,6 +4,9 @@ node_modules/
 android/
 ios/
 
+# Keep the dist/ APK so users can grab it directly
+!dist/
+
 # Logs / OS junk
 *.log
 .DS_Store

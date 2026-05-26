@@ -47,6 +47,9 @@ jobs:
           npx cap add android || npx cap sync android
           npx cap sync android
 
+      - name: Generate Android launcher icons
+        run: node scripts/gen-android-icons.js
+
       - name: Build debug APK
         run: |
           cd android

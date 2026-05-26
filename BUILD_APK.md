@@ -1,7 +1,13 @@
 # Build the Bubble Shooter APK
 
-The game is now a **Progressive Web App (PWA)** — installable on Android
-**without** an APK, *or* you can convert it to a real `.apk` file using one
+> 🎉 **A pre-built APK is already in this repo!**
+> Just download **[`dist/bubble-shooter-debug.apk`](./dist/bubble-shooter-debug.apk)** (~4.6 MB)
+> and install it on any Android 5.1+ phone. No build needed.
+>
+> See [`dist/README.md`](./dist/README.md) for install instructions.
+
+The game is also a **Progressive Web App (PWA)** — installable on Android
+**without** an APK, *or* you can rebuild the `.apk` from source using one
 of the methods below.
 
 ---
