@@ -1,0 +1,27 @@
+# Node / npm
+node_modules/
+npm-debug.log*
+.npm/
+
+# Capacitor build output
+www/
+
+# Android build output / IDE
+android/.gradle/
+android/build/
+android/app/build/
+android/captures/
+android/.idea/
+android/local.properties
+android/*.iml
+android/app/*.iml
+android/.cxx/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Editor
+.vscode/
+*.swp
+*~
